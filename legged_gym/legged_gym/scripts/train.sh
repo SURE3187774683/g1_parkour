@@ -2,7 +2,7 @@
 
 DEVICE=cuda:0
 
-python /home/pc/workspace/h1_parkour/legged_gym/legged_gym/scripts/train.py \
+python /home/pc/workspace/g1_parkour/legged_gym/legged_gym/scripts/train.py \
 --task H1_field \
 --rl_device $DEVICE \
 --sim_device $DEVICE \

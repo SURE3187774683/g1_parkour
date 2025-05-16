@@ -32,15 +32,16 @@ from legged_gym import LEGGED_GYM_ROOT_DIR, LEGGED_GYM_ENVS_DIR
 from .base.legged_robot import LeggedRobot
 from .base.legged_robot_field import LeggedRobotField
 from .base.robot_field_noisy import RobotFieldNoisy
-from .H1.H1_config import H1RoughCfg, H1RoughCfgPPO
-from .H1.H1_field_config import H1FieldCfg, H1FieldCfgPPO
-from .H1.H1_distill_config import H1DistillCfg, H1DistillCfgPPO
+
+from .g1.g1_config import G1RoughCfg, G1RoughCfgPPO
+from .g1.g1_field_config import G1FieldCfg, G1FieldCfgPPO
+from .g1.g1_distill_config import G1DistillCfg, G1DistillCfgPPO
 
 
 import os
 
 from legged_gym.utils.task_registry import task_registry
 
-task_registry.register( "H1", LeggedRobot, H1RoughCfg(), H1RoughCfgPPO() )
-task_registry.register( "H1_field", RobotFieldNoisy, H1FieldCfg(), H1FieldCfgPPO() )
-task_registry.register( "H1_distill", RobotFieldNoisy, H1DistillCfg(), H1DistillCfgPPO() )
+task_registry.register( "g1", LeggedRobot, G1RoughCfg(), G1RoughCfgPPO() )
+task_registry.register( "g1_field", RobotFieldNoisy, G1FieldCfg(), G1FieldCfgPPO() )
+task_registry.register( "g1_distill", RobotFieldNoisy, G1DistillCfg(), G1DistillCfgPPO() )
