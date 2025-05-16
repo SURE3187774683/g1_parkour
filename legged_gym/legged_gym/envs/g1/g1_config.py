@@ -11,7 +11,7 @@ class G1RoughCfg( LeggedRobotCfg ):
         num_privileged_obs = None # No use, use privileged_obs_components
 
         use_lin_vel = False # to be decided
-        num_actions = 10
+        num_actions = 12
         send_timeouts = True # send time out information to the algorithm
         episode_length_s = 20 # episode length in seconds
 
@@ -23,7 +23,7 @@ class G1RoughCfg( LeggedRobotCfg ):
             "dof_pos",  # 10
             "dof_vel",  # 10
             "last_actions", # 10
-            "height_measurements",  #
+            "height_measurements",  # 
         ]
 
     class sensor:
@@ -82,7 +82,7 @@ class G1RoughCfg( LeggedRobotCfg ):
             ang_vel_yaw = [-1.0, 1.0]
 
     class init_state( LeggedRobotCfg.init_state ):
-        pos = [0.0, 0.0, 1.0] # x,y,z [m]
+        pos = [0.0, 0.0, 0.8] # x,y,z [m]
         rot = [0.0, 0.0, 0.0, 1.0]  # x,y,z,w [quat]
         lin_vel = [0.0, 0.0, 0.0]  # x,y,z [m/s]
         ang_vel = [0.0, 0.0, 0.0]  # x,y,z [rad/s]
@@ -91,53 +91,41 @@ class G1RoughCfg( LeggedRobotCfg ):
            'left_hip_roll_joint' : 0,               
            'left_hip_pitch_joint' : -0.1,         
            'left_knee_joint' : 0.3,       
-           'left_ankle_joint' : -0.2,     
+           'left_ankle_pitch_joint' : -0.2,     
+           'left_ankle_roll_joint' : 0,     
            'right_hip_yaw_joint' : 0., 
            'right_hip_roll_joint' : 0, 
            'right_hip_pitch_joint' : -0.1,                                       
            'right_knee_joint' : 0.3,                                             
-           'right_ankle_joint' : -0.2,                                     
-           'torso_joint' : 0., 
-           'left_shoulder_pitch_joint' : 0., 
-           'left_shoulder_roll_joint' : 0, 
-           'left_shoulder_yaw_joint' : 0.,
-           'left_elbow_joint'  : 0.,
-           'right_shoulder_pitch_joint' : 0.,
-           'right_shoulder_roll_joint' : 0.0,
-           'right_shoulder_yaw_joint' : 0.,
-           'right_elbow_joint' : 0.,
+           'right_ankle_pitch_joint': -0.2,                              
+           'right_ankle_roll_joint' : 0,       
+           'torso_joint' : 0.
         }
 
     class control( LeggedRobotCfg.control ):
         # PD Drive parameters:
         control_type = 'P'
           # PD Drive parameters:
-        stiffness = {'hip_yaw': 150,
-                     'hip_roll': 150,
-                     'hip_pitch': 150,
-                     'knee': 200,
+        stiffness = {'hip_yaw': 100,
+                     'hip_roll': 100,
+                     'hip_pitch': 100,
+                     'knee': 150,
                      'ankle': 40,
-                     'torso': 300,
-                     'shoulder': 150,
-                     "elbow":100,
                      }  # [N*m/rad]
         damping = {  'hip_yaw': 2,
                      'hip_roll': 2,
                      'hip_pitch': 2,
                      'knee': 4,
                      'ankle': 2,
-                     'torso': 6,
-                     'shoulder': 2,
-                     "elbow":2,
                      }  # [N*m/rad]  # [N*m*s/rad]
         action_scale = 0.25
         computer_clip_torque = False
         motor_clip_torque = True        
 
     class asset( LeggedRobotCfg.asset ):
-        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/h1/urdf/h1.urdf'
-        name = "h1"
-        foot_name = "ankle"
+        file = '{LEGGED_GYM_ROOT_DIR}/resources/robots/g1_description/g1_12dof.urdf'
+        name = "g1"
+        foot_name = "ankle_roll"
         foot_radius = 0.0
         penalize_contacts_on = ["hip", "knee"]
 
@@ -204,23 +192,6 @@ class G1RoughCfg( LeggedRobotCfg ):
         only_positive_rewards = False
         soft_dof_pos_limit = 0.9
         class scales:
-            # tracking_lin_vel = 1.0
-            # tracking_ang_vel = 0.5
-            # orientation = -1.0
-            # dof_acc = -2.5e-7
-            # collision = -1.0
-            # action_rate = -0.01
-            # dof_pos_limits = -5.0
-            # alive = 0.15
-            # hip_pos = -1.0
-            # contact_no_vel = -0.2
-            # contact = 0.18
-            # ang_vel_xy = -0.05
-
-            # # Added
-            # single_contact = 0.1
-            # # feet_air_time = 1.0
-
             tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
             lin_vel_z = -2.0
@@ -228,10 +199,10 @@ class G1RoughCfg( LeggedRobotCfg ):
             orientation = -1.0
             base_height = -10.0
             dof_acc = -2.5e-7
+            dof_vel = -1e-3
             feet_air_time = 0.0
-            collision = -1.0
+            collision = 0.0
             action_rate = -0.01
-            torques = 0.0
             dof_pos_limits = -5.0
             alive = 0.15
             hip_pos = -1.0
@@ -339,7 +310,7 @@ class G1RoughCfgPPO( LeggedRobotCfgPPO ):
     class runner( LeggedRobotCfgPPO.runner ):
         policy_class_name = "EncoderStateAcRecurrent"
         algorithm_class_name = "EstimatorPPO"
-        experiment_name = "rough_H1"
+        experiment_name = "rough_G1"
         
         resume = False
         load_run = None
