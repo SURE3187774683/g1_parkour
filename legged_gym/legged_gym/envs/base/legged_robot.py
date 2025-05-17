@@ -1729,8 +1729,8 @@ class LeggedRobot(BaseTask):
         self.gym.clear_lines(self.viewer)
 
         # draw debug visuals
-        if getattr(self.terrain.cfg, "measure_heights", False) and getattr(self.cfg.viewer, "draw_measure_heights", False):
-            self._draw_measure_heights_vis()
+        # if getattr(self.terrain.cfg, "measure_heights", False) and getattr(self.cfg.viewer, "draw_measure_heights", False):
+        #     self._draw_measure_heights_vis()
         if getattr(self.cfg.viewer, "draw_height_measurements", False):
             self._draw_height_measurements_vis()
         if getattr(self.cfg.viewer, "draw_sensors", False):

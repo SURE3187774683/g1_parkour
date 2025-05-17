@@ -12,7 +12,7 @@ class G1FieldCfg( G1RoughCfg ):
         num_privileged_obs = None # No use, use privileged_obs_components
 
         use_lin_vel = False # to be decided
-        num_actions = 8
+        num_actions = 12
         send_timeouts = True # send time out information to the algorithm
         episode_length_s = 20 # episode length in seconds
 
@@ -28,7 +28,7 @@ class G1FieldCfg( G1RoughCfg ):
         ]
 
     class init_state( G1RoughCfg.init_state ):
-        pos = [0.0, 0.0, 1.0 + 0.05] # x,y,z [m]
+        pos = [0.0, 0.0, 0.8] # x,y,z [m]
         zero_actions = False
 
     class sensor( G1RoughCfg.sensor):
@@ -38,7 +38,7 @@ class G1FieldCfg( G1RoughCfg ):
 
     class terrain( G1RoughCfg.terrain ):
         num_rows = 10
-        num_cols = 4
+        num_cols = 40
         selected = "BarrierTrack"
         slope_treshold = 20.
         max_init_terrain_level = 1
@@ -47,7 +47,7 @@ class G1FieldCfg( G1RoughCfg ):
             options= [
                 "jump",
                 "leap",
-                "hurdle",
+                # "hurdle",
                 "down",
                 "tilted_ramp",
                 "stairsup",
@@ -148,7 +148,6 @@ class G1FieldCfg( G1RoughCfg ):
             no_perlin_threshold= 0.1,
             randomize_obstacle_order= True,
             n_obstacles_per_track= 1,
-            
         )
 
     class commands( G1RoughCfg.commands ):
@@ -175,7 +174,7 @@ class G1FieldCfg( G1RoughCfg ):
 
     class asset( G1RoughCfg.asset ):
         terminate_after_contacts_on = ["base"]
-        penalize_contacts_on = ["pelvis","knee", "hip","ankle"]
+        # penalize_contacts_on = ["pelvis","knee", "hip","ankle"]
 
     class termination( G1RoughCfg.termination ):
         roll_kwargs = dict(
@@ -192,28 +191,21 @@ class G1FieldCfg( G1RoughCfg ):
         class scales:
             tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
-            # lin_vel_z = -2.0
+            lin_vel_z = -2.0
             ang_vel_xy = -0.05
             orientation = -1.0
             # base_height = -10.0
             dof_acc = -2.5e-7
+            dof_vel = -1e-3
             feet_air_time = 0.0
-            collision = -1.0
+            collision = 0.0
             action_rate = -0.01
-            torques = 0.0
             dof_pos_limits = -5.0
             alive = 0.15
             hip_pos = -1.0
             contact_no_vel = -0.2
             # feet_swing_height = -20.0
             contact = 0.18
-
-            # # ADDED Reward
-            # collision = -0.05
-            # lazy_stop = -3.
-
-            # # penetration penalty
-            # penetrate_depth = -0.05
 
     class noise( G1RoughCfg.noise ):
         add_noise = False
@@ -229,11 +221,11 @@ class G1FieldCfgPPO( G1RoughCfgPPO ):
         entropy_coef = 0.0
 
     class runner( G1RoughCfgPPO.runner ):
-        experiment_name = "field_H1"
+        experiment_name = "field_G1"
 
         resume = True
-        load_run = osp.join(logs_root, "rough_H1",
-            "May04_21-19-33_unitree",
+        load_run = osp.join(logs_root, "rough_G1",
+            "May16_21-12-31_Perlin",
         )
 
         # run_name = "".join(["H1_",
