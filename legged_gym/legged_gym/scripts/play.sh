@@ -3,7 +3,7 @@
 
 python /home/shaos/workspace/g1_parkour/legged_gym/legged_gym/scripts/play.py \
 --task g1 \
---load_run May16_21-12-31_Perlin \
+--load_run May17_19-31-38_parlin \
 --checkpoint 2500 \
 # --headless
 

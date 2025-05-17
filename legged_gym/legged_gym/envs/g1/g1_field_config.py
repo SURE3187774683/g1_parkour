@@ -225,7 +225,7 @@ class G1FieldCfgPPO( G1RoughCfgPPO ):
 
         resume = True
         load_run = osp.join(logs_root, "rough_G1",
-            "May16_21-12-31_Perlin",
+            "May17_19-31-38_parlin",
         )
 
         # run_name = "".join(["H1_",
