@@ -189,6 +189,7 @@ class G1RoughCfg( LeggedRobotCfg ):
 
     class rewards( LeggedRobotCfg.rewards ):
         dof_error_names = ["left_hip_yaw_joint","right_hip_yaw_joint"]
+        min_feet_distance = 0.2
         only_positive_rewards = False
         soft_dof_pos_limit = 0.9
         base_height_target = 0.78
@@ -210,6 +211,10 @@ class G1RoughCfg( LeggedRobotCfg ):
             contact_no_vel = -0.2
             # feet_swing_height = -20.0
             contact = 0.18
+
+            #ADDed
+            dof_error_named = -0.2
+            feet_distance = 0.4
 
     # class normalization( LeggedRobotCfg.normalization ):
     #     class obs_scales( LeggedRobotCfg.normalization.obs_scales ):
@@ -326,6 +331,6 @@ class G1RoughCfgPPO( LeggedRobotCfgPPO ):
         # ])
         
 
-        max_iterations = 10000
+        max_iterations = 5000
         save_interval = 500
         log_interval = 1

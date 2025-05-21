@@ -189,7 +189,7 @@ class G1FieldCfg( G1RoughCfg ):
     class rewards( G1RoughCfg.rewards ):
         collision_tracking_weight = 5  # 碰撞时的基础权重
         dof_error_names = ["left_hip_yaw_joint","right_hip_yaw_joint"]
-        min_feet_distance = 0.2
+        min_feet_distance = 0.3
         class scales:
             tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
