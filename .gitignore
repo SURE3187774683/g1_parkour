@@ -53,7 +53,9 @@ Thumbs.db
 # logs
 logs
 runs
+log.file*
 
 # other
 *.egg-info
 __pycache__
+
