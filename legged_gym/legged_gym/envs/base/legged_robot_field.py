@@ -46,15 +46,15 @@ class LeggedRobotFieldMixin:
             # Assuming that each robot will only be in one obstacle or non obstacle.
             robot_stepping_obstacle_id = torch.max(stepping_obstacle_info[:, :, 0], dim= -1)[0]
        
-        # 添加碰撞检测作为终止条件
-        if hasattr(self, 'volume_sample_points'):
-            self.refresh_volume_sample_points()
-            penetration_depths = self.terrain.get_penetration_depths(self.volume_sample_points.view(-1, 3)).view(self.num_envs, -1)
-            penetration_depths *= torch.norm(self.volume_sample_points_vel, dim= -1) + 1e-3
-            collision_detected = torch.any(penetration_depths > 0.01, dim=1)  # 使用1cm作为阈值
+        # # 添加碰撞检测作为终止条件
+        # if hasattr(self, 'volume_sample_points'):
+        #     self.refresh_volume_sample_points()
+        #     penetration_depths = self.terrain.get_penetration_depths(self.volume_sample_points.view(-1, 3)).view(self.num_envs, -1)
+        #     penetration_depths *= torch.norm(self.volume_sample_points_vel, dim= -1) + 1e-3
+        #     collision_detected = torch.any(penetration_depths > 0.01, dim=1)  # 使用1cm作为阈值
             
-            # 将碰撞检测结果添加到终止条件中
-            self.reset_buf |= collision_detected
+        #     # 将碰撞检测结果添加到终止条件中
+        #     self.reset_buf |= collision_detected
             
             # # 打印调试信息
             # if torch.any(collision_detected):
@@ -528,37 +528,37 @@ class LeggedRobotFieldMixin:
         return segments
 
     ##### Additional rewards #####
-    def _reward_tracking_lin_vel(self):
-        """
-        Tracking of linear velocity commands (xy axes) with obstacle-aware adjustment
-        """
-        # 1. 基础跟踪奖励计算
-        lin_vel_error = torch.sum(torch.square(self.commands[:, :2] - self.base_lin_vel[:, :2]), dim=1)
-        tracking_reward = torch.exp(-lin_vel_error / self.cfg.rewards.tracking_sigma)
+    # def _reward_tracking_lin_vel(self):
+    #     """
+    #     Tracking of linear velocity commands (xy axes) with obstacle-aware adjustment
+    #     """
+    #     # 1. 基础跟踪奖励计算
+    #     lin_vel_error = torch.sum(torch.square(self.commands[:, :2] - self.base_lin_vel[:, :2]), dim=1)
+    #     tracking_reward = torch.exp(-lin_vel_error / self.cfg.rewards.tracking_sigma)
 
-        # 2. 当发生碰撞时，降低跟踪惩罚
-        if hasattr(self, 'volume_sample_points') and torch.any(self.collision_detected):
-            # 对发生碰撞的环境，使用配置的权重来降低惩罚
-            adjusted_sigma = self.cfg.rewards.tracking_sigma * self.cfg.rewards.collision_tracking_weight
+    #     # 2. 当发生碰撞时，降低跟踪惩罚
+    #     if hasattr(self, 'volume_sample_points') and torch.any(self.collision_detected):
+    #         # 对发生碰撞的环境，使用配置的权重来降低惩罚
+    #         adjusted_sigma = self.cfg.rewards.tracking_sigma * self.cfg.rewards.collision_tracking_weight
             
-            # 使用调整后的sigma计算奖励
-            tracking_reward = torch.where(
-                self.collision_detected,
-                torch.exp(-lin_vel_error / adjusted_sigma),
-                tracking_reward
-            )
+    #         # 使用调整后的sigma计算奖励
+    #         tracking_reward = torch.where(
+    #             self.collision_detected,
+    #             torch.exp(-lin_vel_error / adjusted_sigma),
+    #             tracking_reward
+    #         )
             
-            # # 打印调试信息
-            # if torch.any(self.collision_detected):
-            #     print("\n=== 避障奖励调整信息 ===")
-            #     print(f"发生碰撞的环境数量: {torch.sum(self.collision_detected).item()}")
-            #     print(f"碰撞环境索引: {torch.where(self.collision_detected)[0].cpu().numpy()}")
-            #     print(f"碰撞跟踪权重: {self.cfg.rewards.collision_tracking_weight}")
-            #     print(f"原始奖励: {torch.exp(-lin_vel_error[self.collision_detected] / self.cfg.rewards.tracking_sigma).cpu().numpy()}")
-            #     print(f"调整后奖励: {tracking_reward[self.collision_detected].cpu().numpy()}")
-            #     print("===================\n")
+    #         # # 打印调试信息
+    #         # if torch.any(self.collision_detected):
+    #         #     print("\n=== 避障奖励调整信息 ===")
+    #         #     print(f"发生碰撞的环境数量: {torch.sum(self.collision_detected).item()}")
+    #         #     print(f"碰撞环境索引: {torch.where(self.collision_detected)[0].cpu().numpy()}")
+    #         #     print(f"碰撞跟踪权重: {self.cfg.rewards.collision_tracking_weight}")
+    #         #     print(f"原始奖励: {torch.exp(-lin_vel_error[self.collision_detected] / self.cfg.rewards.tracking_sigma).cpu().numpy()}")
+    #         #     print(f"调整后奖励: {tracking_reward[self.collision_detected].cpu().numpy()}")
+    #         #     print("===================\n")
 
-        return tracking_reward
+    #     return tracking_reward
         
 
     def _reward_world_vel_l2norm(self):

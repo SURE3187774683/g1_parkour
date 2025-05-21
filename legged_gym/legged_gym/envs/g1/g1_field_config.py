@@ -188,24 +188,25 @@ class G1FieldCfg( G1RoughCfg ):
 
     class rewards( G1RoughCfg.rewards ):
         collision_tracking_weight = 5  # 碰撞时的基础权重
+        dof_error_names = ["left_hip_yaw_joint","right_hip_yaw_joint"]
+        min_feet_distance = 0.2
         class scales:
             tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
-            lin_vel_z = -2.0
-            ang_vel_xy = -0.05
             orientation = -1.0
-            # base_height = -10.0
-            dof_acc = -2.5e-7
+            energy = -2.5e-7
+            
             dof_vel = -1e-3
-            feet_air_time = 0.0
-            collision = 0.0
-            action_rate = -0.01
-            dof_pos_limits = -5.0
-            alive = 0.15
-            hip_pos = -1.0
-            contact_no_vel = -0.2
-            # feet_swing_height = -20.0
+            dof_acc = -2.5e-7
             contact = 0.18
+
+            action_rate = -0.01
+            # dof_pos_limits = -5.0
+            # alive = 0.15
+            # hip_pos = -1.0
+            # contact_no_vel = -0.2
+            dof_error_named = -0.2
+            feet_distance = 0.4
 
     class noise( G1RoughCfg.noise ):
         add_noise = False

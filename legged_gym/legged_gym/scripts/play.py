@@ -87,7 +87,7 @@ def play(args):
 
     # override some parameters for testing
     if env_cfg.terrain.selected == "BarrierTrack":
-        env_cfg.env.num_envs = min(env_cfg.env.num_envs, 10)
+        env_cfg.env.num_envs = min(env_cfg.env.num_envs, 1)
         env_cfg.env.episode_length_s = 20
         env_cfg.terrain.max_init_terrain_level = 0
         env_cfg.terrain.num_rows = 4
@@ -505,8 +505,8 @@ if __name__ == '__main__':
     ])
     MOVE_CAMERA = (args.num_envs is None)
     CAMERA_FOLLOW = MOVE_CAMERA
-    MOVE_CAMERA = False
-    CAMERA_FOLLOW = False
+    # MOVE_CAMERA = False
+    # CAMERA_FOLLOW = False
     RECORD_FRAMES = args.record
     try:
         play(args)
