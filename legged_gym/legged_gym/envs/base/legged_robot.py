@@ -192,6 +192,7 @@ class LeggedRobot(BaseTask):
         self.power = torch.abs(self.torques * self.dof_vel)
 
         # self._compute_feet_states()
+        self.compute_foot_state()
 
         self._post_physics_step_callback()
 
@@ -564,6 +565,45 @@ class LeggedRobot(BaseTask):
         cam_target = gymapi.Vec3(lookat[0], lookat[1], lookat[2])
         self.gym.viewer_camera_look_at(self.viewer, None, cam_pos, cam_target)
 
+    def compute_foot_state(self):
+        self.feet_state = self.rigid_body_state[:, self.feet_indices, :]
+        self.foot_quat = self.rigid_body_state.view(self.num_envs, self.num_bodies, 13)[
+            :, self.feet_indices, 3:7
+        ]
+        self.foot_positions = self.rigid_body_state.view(
+            self.num_envs, self.num_bodies, 13
+        )[:, self.feet_indices, 0:3]
+        self.foot_velocities = (
+            self.foot_positions - self.last_foot_positions
+        ) / self.dt
+
+        self.foot_ang_vel = self.rigid_body_state.view(
+            self.num_envs, self.num_bodies, 13
+        )[:, self.feet_indices, 10:13]
+        for i in range(len(self.feet_indices)):
+            self.foot_ang_vel[:, i] = quat_rotate_inverse(
+                self.foot_quat[:, i], self.foot_ang_vel[:, i]
+            )
+            self.foot_velocities_f[:, i] = quat_rotate_inverse(
+                self.foot_quat[:, i], self.foot_velocities[:, i]
+            )
+
+        foot_relative_velocities = (
+            self.foot_velocities
+            - (self.base_position - self.last_base_position)
+            .unsqueeze(1)
+            .repeat(1, len(self.feet_indices), 1)
+            / self.dt
+        )
+        for i in range(len(self.feet_indices)):
+            self.foot_relative_velocities[:, i, :] = quat_rotate_inverse(
+                self.base_quat, foot_relative_velocities[:, i, :]
+            )
+        self.foot_heights = torch.clip(
+            (
+                self.foot_positions[:, :, 2]
+                - self.cfg.asset.foot_radius
+                - self._get_foot_heights()), 0, 1)
     #------------- Callbacks --------------
     def _process_rigid_shape_props(self, props, env_id):
         """ Callback allowing to store/change/randomize the rigid shape properties of each environment.
@@ -1009,16 +1049,32 @@ class LeggedRobot(BaseTask):
         self.rpy = get_euler_xyz_in_tensor(self.base_quat)
 
         # add foot positions and base positions
-        self.rigid_body_states = gymtorch.wrap_tensor(rigid_body_state).view(
+        rigid_body_state = self.gym.acquire_rigid_body_state_tensor(self.sim)
+        self.gym.refresh_rigid_body_state_tensor(self.sim)
+        self.rigid_body_state = gymtorch.wrap_tensor(rigid_body_state).view(
             self.num_envs, self.num_bodies, -1
         )
-        self.feet_state = self.rigid_body_states[:, self.feet_indices, :]
-        self.base_position = self.root_states[:, :3]
-        self.last_base_position = torch.zeros_like(self.base_position)
-        self.foot_positions = self.rigid_body_states.view(
+        self.feet_state = self.rigid_body_state[:, self.feet_indices, :]
+        self.rigid_body_state = gymtorch.wrap_tensor(rigid_body_state).view(
+            self.num_envs, self.num_bodies, -1
+        )
+        self.foot_positions = self.rigid_body_state.view(
             self.num_envs, self.num_bodies, 13
         )[:, self.feet_indices, 0:3]
         self.last_foot_positions = torch.zeros_like(self.foot_positions)
+
+        # self.rigid_body_states = gymtorch.wrap_tensor(rigid_body_state).view(
+        #     self.num_envs, self.num_bodies, -1
+        # )
+        # self.feet_state = self.rigid_body_states[:, self.feet_indices, :]
+
+
+        self.base_position = self.root_states[:, :3]
+        self.last_base_position = torch.zeros_like(self.base_position)
+        # self.foot_positions = self.rigid_body_states.view(
+        #     self.num_envs, self.num_bodies, 13
+        # )[:, self.feet_indices, 0:3]
+        # self.last_foot_positions = torch.zeros_like(self.foot_positions)
         self.foot_heights = torch.zeros_like(self.foot_positions)
         self.foot_velocities = torch.zeros_like(self.foot_positions)
         self.foot_velocities_f = torch.zeros_like(self.foot_positions)
@@ -2227,11 +2283,31 @@ class LeggedRobot(BaseTask):
         )
     
     def _reward_feet_distance(self):
-        # Penalize distance between two feet
+        # 区间[min_feet_distance, max_feet_distance]内奖励为1，区间外奖励随距离递减
+        min_feet_distance = self.cfg.rewards.min_feet_distance
+        max_feet_distance = self.cfg.rewards.max_feet_distance
+
         feet_distance = torch.norm(
             self.foot_positions[:, 0, :2] - self.foot_positions[:, 1, :2], dim=-1
         )
-        reward = torch.clip(self.cfg.rewards.min_feet_distance - feet_distance, 0, 1)
+
+        # 区间内奖励为1
+        in_range = (feet_distance >= min_feet_distance) & (feet_distance <= max_feet_distance)
+        reward = torch.ones_like(feet_distance)
+
+        # 区间外，距离区间边界越远奖励越小（线性递减，也可用exp递减）
+        lower_mask = feet_distance < min_feet_distance
+        upper_mask = feet_distance > max_feet_distance
+
+        # 线性递减，距离每远0.01奖励减少0.1，最小为0
+        penalty_scale = 0.1  # 可调节
+        reward[lower_mask] = torch.clamp(1.0 - penalty_scale * (min_feet_distance - feet_distance[lower_mask]) / 0.01, min=0.0)
+        reward[upper_mask] = torch.clamp(1.0 - penalty_scale * (feet_distance[upper_mask] - max_feet_distance) / 0.01, min=0.0)
+
+        # 打印奖励和feet_distance
+        print("feet_distance:", feet_distance)
+        print("feet_distance_reward:", reward)
+        
         return reward
     
     def _reward_feet_regulation(self):

@@ -193,20 +193,21 @@ class G1FieldCfg( G1RoughCfg ):
         class scales:
             tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
+            ang_vel_xy = -0.3
             orientation = -1.0
-            energy = -2.5e-7
-            
-            dof_vel = -1e-3
-            dof_acc = -2.5e-7
             contact = 0.18
 
+            dof_acc = -2.5e-7
+            dof_vel = -1e-3
+
             action_rate = -0.01
-            # dof_pos_limits = -5.0
-            # alive = 0.15
-            # hip_pos = -1.0
-            # contact_no_vel = -0.2
+            dof_pos_limits = -5.0
+            alive = 0.15
+            hip_pos = -1.0
+
+            # added for parlin terrain
             dof_error_named = -0.2
-            feet_distance = 0.4
+            feet_air_time = 10.0
 
     class noise( G1RoughCfg.noise ):
         add_noise = False
@@ -226,7 +227,7 @@ class G1FieldCfgPPO( G1RoughCfgPPO ):
 
         resume = True
         load_run = osp.join(logs_root, "rough_G1",
-            "May17_19-31-38_parlin",
+            "May23_22-18-37_parlin_v1_feet_air_time10_ang_vel_xy-0.4",
         )
 
         # run_name = "".join(["H1_",

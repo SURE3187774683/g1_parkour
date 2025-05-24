@@ -55,7 +55,7 @@ class G1RoughCfg( LeggedRobotCfg ):
 
         TerrainPerlin_kwargs = dict(
             zScale= 0.07,
-            frequency= 10,
+            frequency= 5,
         )
 
         curriculum_perlin= True
@@ -189,32 +189,35 @@ class G1RoughCfg( LeggedRobotCfg ):
 
     class rewards( LeggedRobotCfg.rewards ):
         dof_error_names = ["left_hip_yaw_joint","right_hip_yaw_joint"]
-        min_feet_distance = 0.2
+        min_feet_distance = 0.15
+        max_feet_distance = 0.33
         only_positive_rewards = False
         soft_dof_pos_limit = 0.9
         base_height_target = 0.78
         class scales:
             tracking_lin_vel = 1.0
             tracking_ang_vel = 0.5
-            lin_vel_z = -2.0
-            ang_vel_xy = -0.05
+            ang_vel_xy = -0.3
             orientation = -1.0
-            # base_height = -10.0
+            contact = 0.18
+
             dof_acc = -2.5e-7
             dof_vel = -1e-3
-            feet_air_time = 0.0
-            collision = 0.0
+
             action_rate = -0.01
             dof_pos_limits = -5.0
             alive = 0.15
             hip_pos = -1.0
-            contact_no_vel = -0.2
-            # feet_swing_height = -20.0
-            contact = 0.18
 
-            #ADDed
+            # added for parlin terrain
             dof_error_named = -0.2
-            feet_distance = 0.4
+            feet_air_time = 10.0
+            # feet_distance = 0.5
+            # feet_contact_forces = -3e-4
+            # energy = -2.5e-7
+            # torques = -2e-6
+            # single_contact = 0.5
+            # collision = -10.0
 
     # class normalization( LeggedRobotCfg.normalization ):
     #     class obs_scales( LeggedRobotCfg.normalization.obs_scales ):
