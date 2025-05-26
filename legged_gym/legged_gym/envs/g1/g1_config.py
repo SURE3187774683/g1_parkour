@@ -188,7 +188,7 @@ class G1RoughCfg( LeggedRobotCfg ):
         # #######################################        
 
     class rewards( LeggedRobotCfg.rewards ):
-        dof_error_names = ["left_hip_yaw_joint","right_hip_yaw_joint"]
+        dof_error_names = ["left_hip_yaw_joint","right_hip_yaw_joint","left_hip_roll_joint","right_hip_roll_joint"]
         min_feet_distance = 0.15
         max_feet_distance = 0.33
         only_positive_rewards = False
@@ -210,7 +210,7 @@ class G1RoughCfg( LeggedRobotCfg ):
             hip_pos = -1.0
 
             # added for parlin terrain
-            dof_error_named = -0.2
+            dof_error_named = -0.1
             feet_air_time = 10.0
             # feet_distance = 0.5
             # feet_contact_forces = -3e-4
@@ -234,41 +234,20 @@ class G1RoughCfg( LeggedRobotCfg ):
 
     class sim( LeggedRobotCfg.sim ):
         body_measure_points = { # transform are related to body frame
-            "pelvis": dict(
-                x= [i for i in np.arange(-0.08, 0.50, 0.05)],
-                y= [i for i in np.arange(-0.25, 0.25, 0.05)],
-                z= [i for i in np.arange(-0.05, 0.60, 0.05)],
-                transform= [0., 0., 0., 0., 0., 0.],
-            ),
-            
-            "hip_roll": dict(
-                x= [i for i in np.arange(-0.07, 0.08, 0.02)],
-                y= [i for i in np.arange(-0.05, 0.04, 0.02)],
-                z= [i for i in np.arange(-0.05, 0.06, 0.02)],
-                transform= [0., 0., 0.,   0., 0., 0.],
-            ),
-
             "hip_yaw": dict(
-                x= [i for i in np.arange(-0.15, 0.1, 0.02)],
-                y= [i for i in np.arange(-0.05, 0.07, 0.02)],
-                z= [i for i in np.arange(-0.1, 0.0, 0.02)],
-                transform= [0., 0., 0.0,   0., 2.1, 0.],
-            ),
-            "hip_pitch": dict(
-                x= [i for i in np.arange(-0.058, 0.45, 0.02)],
-                y= [i for i in np.arange(-0.043, 0.04, 0.02)],
-                z= [i for i in np.arange(-0.06, 0.075, 0.02)],
-                transform= [0., 0., 0., 0., 1.57, 0.],
+                x= [i for i in np.arange(-0.1, 0.02, 0.02)],
+                y= [i for i in np.arange(-0.06, 0.06, 0.02)],
+                z= [i for i in np.arange(-0.15, 0.2, 0.02)],
+                transform= [0.05, 0., 0.,  0., 0., 0.],
             ),
             "knee": dict(
-                x= [i for i in np.arange(-0.22, 0.2, 0.02)],
+                x= [i for i in np.arange(-0.29, 0.06, 0.02)],
                 y= [i for i in np.arange(-0.028, 0.06, 0.02)],
                 z= [i for i in np.arange(-0.06, 0.07, 0.02)],
                 transform= [0., 0., -0.25, 0., 1.6, 0.],
             ),
-
             "ankle": dict(
-                x= [i for i in np.arange(-0.09, 0.22, 0.02)],
+                x= [i for i in np.arange(-0.05, 0.18, 0.02)],
                 y= [i for i in np.arange(-0.036, 0.036, 0.03)],
                 z= [i for i in np.arange(-0.07, 0., 0.02)],
                 transform= [-0.01, 0., 0., 0., 0., 0.],

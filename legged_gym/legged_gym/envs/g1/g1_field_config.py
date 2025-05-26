@@ -206,8 +206,21 @@ class G1FieldCfg( G1RoughCfg ):
             hip_pos = -1.0
 
             # added for parlin terrain
-            dof_error_named = -0.2
+            dof_error_named = -0.05
             feet_air_time = 10.0
+
+            # added for terrain
+            torques = -1e-7
+            collision = -0.05
+            lazy_stop = -3.
+            
+            # penetration penalty
+            penetrate_depth = -0.05
+            
+            # feet_distance = 0.5
+            # feet_contact_forces = -3e-4
+            # energy = -2.5e-7
+            # torques = -2e-6
 
     class noise( G1RoughCfg.noise ):
         add_noise = False
@@ -227,7 +240,7 @@ class G1FieldCfgPPO( G1RoughCfgPPO ):
 
         resume = True
         load_run = osp.join(logs_root, "rough_G1",
-            "May23_22-18-37_parlin_v1_feet_air_time10_ang_vel_xy-0.4",
+            "May24_14-25-22_v1_dof_error_names+hip_roll_dof_error_named-0.1",
         )
 
         # run_name = "".join(["H1_",
