@@ -129,8 +129,8 @@ class G1RoughCfg( LeggedRobotCfg ):
         foot_radius = 0.0
         penalize_contacts_on = ["hip", "knee"]
 
-        # terminate_after_contacts_on = ["pelvis"]
-        terminate_after_contacts_on = ["base"]
+        terminate_after_contacts_on = ["pelvis"]
+        # terminate_after_contacts_on = ["base"]
         self_collisions = 0  # 1 to disable, 0 to enable...bitwise filter
         replace_cylinder_with_capsule = False
 
@@ -189,8 +189,7 @@ class G1RoughCfg( LeggedRobotCfg ):
 
     class rewards( LeggedRobotCfg.rewards ):
         dof_error_names = ["left_hip_yaw_joint","right_hip_yaw_joint","left_hip_roll_joint","right_hip_roll_joint"]
-        min_feet_distance = 0.15
-        max_feet_distance = 0.33
+        min_feet_distance = 0.3
         only_positive_rewards = False
         soft_dof_pos_limit = 0.9
         base_height_target = 0.78
@@ -199,25 +198,21 @@ class G1RoughCfg( LeggedRobotCfg ):
             tracking_ang_vel = 0.5
             ang_vel_xy = -0.3
             orientation = -1.0
-            contact = 0.18
+            lin_vel_z = -2.0
 
             dof_acc = -2.5e-7
             dof_vel = -1e-3
-
+            
             action_rate = -0.01
             dof_pos_limits = -5.0
             alive = 0.15
             hip_pos = -1.0
+            contact = 0.18
 
-            # added for parlin terrain
-            dof_error_named = -0.1
+            # # added for parlin terrain
             feet_air_time = 10.0
-            # feet_distance = 0.5
-            # feet_contact_forces = -3e-4
-            # energy = -2.5e-7
-            # torques = -2e-6
-            # single_contact = 0.5
-            # collision = -10.0
+            single_contact = 1
+            # dof_error_named = -0.1
 
     # class normalization( LeggedRobotCfg.normalization ):
     #     class obs_scales( LeggedRobotCfg.normalization.obs_scales ):
@@ -313,6 +308,6 @@ class G1RoughCfgPPO( LeggedRobotCfgPPO ):
         # ])
         
 
-        max_iterations = 5000
+        max_iterations = 8000
         save_interval = 500
         log_interval = 1

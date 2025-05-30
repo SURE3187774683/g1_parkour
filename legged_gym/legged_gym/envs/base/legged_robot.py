@@ -381,6 +381,7 @@ class LeggedRobot(BaseTask):
         return self.robot_config_buffer
 
     def _get_forward_depth_obs(self, privileged= False):
+        print("DIAOYONLE")
         return torch.stack(self.sensor_tensor_dict["forward_depth"]).flatten(start_dim= 1)
 
     ##### The wrapper function to build and help processing observations #####
@@ -1162,6 +1163,7 @@ class LeggedRobot(BaseTask):
         self.default_dof_pos = torch.zeros(self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
         for i in range(self.num_dof):
             name = self.dof_names[i]
+            # print(f"关节编号: {i}, 关节名字: {name}") 
             angle = self.cfg.init_state.default_joint_angles[name]
             self.default_dof_pos[i] = angle
             found = False
@@ -1732,10 +1734,36 @@ class LeggedRobot(BaseTask):
             plt.pause(0.001)
 
     def _draw_sensor_vis(self, env_h, sensor_hd):
+        # 获取当前环境的索引
+        env_idx = self.envs.index(env_h)
+        
         for sensor_name, sensor_h in sensor_hd.items():
             if "camera" in sensor_name:
-                camera_transform = self.gym.get_camera_transform(self.sim, env_h, sensor_h)
-                cam_axes = gymutil.AxesGeometry(scale= 0.1)
+                # 获取机器人当前位置和旋转
+                root_pos = self.root_states[env_idx, :3].cpu().numpy()
+                root_rot = self.root_states[env_idx, 3:7].cpu().numpy()
+                
+                # 从forward_camera配置中获取相机参数
+                sensor_cfg = self.cfg.sensor.forward_camera
+                # 获取相机位置参数
+                pos_mean = np.array(sensor_cfg.position["mean"])
+                camera_pos = root_pos + pos_mean
+                
+                # 获取相机旋转参数
+                rot_lower = np.array(sensor_cfg.rotation["lower"])
+                rot_upper = np.array(sensor_cfg.rotation["upper"])
+                camera_rot = (rot_lower + rot_upper) / 2  # 使用上下限的平均值
+                
+                # 创建相机变换
+                camera_transform = gymapi.Transform()
+                camera_transform.p = gymapi.Vec3(*camera_pos)
+                camera_transform.r = gymapi.Quat.from_euler_zyx(*camera_rot)
+                
+                # 设置相机变换
+                self.gym.set_camera_transform(sensor_h, env_h, camera_transform)
+                
+                # 绘制相机坐标轴
+                cam_axes = gymutil.AxesGeometry(scale=0.1)
                 gymutil.draw_lines(cam_axes, self.gym, self.viewer, env_h, camera_transform)
 
     def _draw_sensor_reading_vis(self, env_h, sensor_hd):
@@ -2283,31 +2311,11 @@ class LeggedRobot(BaseTask):
         )
     
     def _reward_feet_distance(self):
-        # 区间[min_feet_distance, max_feet_distance]内奖励为1，区间外奖励随距离递减
-        min_feet_distance = self.cfg.rewards.min_feet_distance
-        max_feet_distance = self.cfg.rewards.max_feet_distance
-
+        # Penalize distance between two feet
         feet_distance = torch.norm(
             self.foot_positions[:, 0, :2] - self.foot_positions[:, 1, :2], dim=-1
         )
-
-        # 区间内奖励为1
-        in_range = (feet_distance >= min_feet_distance) & (feet_distance <= max_feet_distance)
-        reward = torch.ones_like(feet_distance)
-
-        # 区间外，距离区间边界越远奖励越小（线性递减，也可用exp递减）
-        lower_mask = feet_distance < min_feet_distance
-        upper_mask = feet_distance > max_feet_distance
-
-        # 线性递减，距离每远0.01奖励减少0.1，最小为0
-        penalty_scale = 0.1  # 可调节
-        reward[lower_mask] = torch.clamp(1.0 - penalty_scale * (min_feet_distance - feet_distance[lower_mask]) / 0.01, min=0.0)
-        reward[upper_mask] = torch.clamp(1.0 - penalty_scale * (feet_distance[upper_mask] - max_feet_distance) / 0.01, min=0.0)
-
-        # 打印奖励和feet_distance
-        print("feet_distance:", feet_distance)
-        print("feet_distance_reward:", reward)
-        
+        reward = torch.clip(self.cfg.rewards.min_feet_distance - feet_distance, 0, 1)
         return reward
     
     def _reward_feet_regulation(self):
@@ -2408,9 +2416,11 @@ class LeggedRobot(BaseTask):
         contact_feet_vel = self.feet_vel * contact.unsqueeze(-1)
         penalize = torch.square(contact_feet_vel[:, :, :3])
         return torch.sum(penalize, dim=(1,2))
-    
+        # Penalize contact with no velocity
+
     def _reward_hip_pos(self):
-        return torch.sum(torch.square(self.dof_pos[:,[0,1,5,6]]), dim=1)
+        return torch.sum(torch.square(self.dof_pos[:,[1,2,7,8]]), dim=1)
+    
     
     def _reward_single_contact(self):
         contacts = self.contact_forces[:, self.feet_indices, 2] > 0.1

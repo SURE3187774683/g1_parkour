@@ -1,4 +1,7 @@
 """ The script to collect demonstrations for the legged robot """
+import os
+os.environ['MESA_VK_DEVICE_SELECT'] = '10de:2684'
+os.environ["CUDA_VISIBLE_DEVICES"] = '2'
 import isaacgym
 from collections import OrderedDict
 import torch
@@ -20,7 +23,8 @@ from rsl_rl.modules import build_actor_critic
 from rsl_rl.runners.dagger_saver import DemonstrationSaver, DaggerSaver
 
 def main(args):
-    RunnerCls = DaggerSaver if args.load_run else DemonstrationSaver
+    # RunnerCls = DaggerSaver if args.load_run else DemonstrationSaver
+    RunnerCls = DaggerSaver
     success_traj_only = False
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     if RunnerCls == DaggerSaver:

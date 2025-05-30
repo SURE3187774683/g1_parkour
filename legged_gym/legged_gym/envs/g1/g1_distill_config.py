@@ -9,8 +9,6 @@ from legged_gym.envs.g1.g1_field_config import G1FieldCfg, G1FieldCfgPPO, G1Roug
 
 multi_process_ = False
 class G1DistillCfg( G1FieldCfg ):
-    
-
     class env( G1FieldCfg.env ):
         num_envs = 256
         obs_components = [
@@ -58,12 +56,12 @@ class G1DistillCfg( G1FieldCfg ):
             obs_components = ["forward_depth"]
             resolution = [int(480/4), int(640/4)]
             position = dict(
-                mean= [0.14, -0.0175, -0.3],
+                mean= [0.1, 0., 0.462],
                 std= [0.01, 0.0025, 0.03],
             )
             rotation = dict(
-                lower= [-0.1, 0.37, -0.1],
-                upper= [0.1, 0.43, 0.1],
+                lower= [0, 0.37, 0],
+                upper= [0, 0.43, 0],
             )
             resized_resolution = [48, 64]
             output_resolution = [48, 64]
@@ -150,38 +148,23 @@ class G1DistillCfgPPO( G1FieldCfgPPO ):
         action_labels_from_sample = False
 
         teacher_policy_class_name = "EncoderStateAcRecurrent"
-        teacher_ac_path = osp.join(logs_root, "field_H1",
-            "Apr21_18-54-13_v1",
-            "model_60000.pt"
+        teacher_ac_path = osp.join(logs_root, "field_G1",
+            "May28_21-08-07_V5_No_feet_air_time",
+            "model_22000.pt"
         )
 
-        # class teacher_policy( G1FieldCfgPPO.policy ):
-        #     num_actor_obs = 48 + 21 * 11
-        #     num_critic_obs = 48 + 21 * 11
-        #     num_actions = 12
-        #     obs_segments = OrderedDict([
-        #         ("lin_vel", (3,)),
-        #         ("ang_vel", (3,)),
-        #         ("projected_gravity", (3,)),
-        #         ("commands", (3,)),
-        #         ("dof_pos", (12,)),
-        #         ("dof_vel", (12,)),
-        #         ("last_actions", (12,)), # till here: 3+3+3+3+12+12+12 = 48
-        #         ("height_measurements", (1, 21, 11)),
-        #     ])
-
         class teacher_policy( G1FieldCfgPPO.policy ):
-            num_actor_obs = 41 + 21 * 11
-            num_critic_obs = 41 + 21 * 11
-            num_actions = 10
+            num_actor_obs = 48 + 21 * 11
+            num_critic_obs = 48 + 21 * 11
+            num_actions = 12
             obs_segments = OrderedDict([
                 ("lin_vel", (3,)),
                 ("ang_vel", (3,)),
                 ("projected_gravity", (3,)),
                 ("commands", (3,)),
-                ("dof_pos", (10,)),
-                ("dof_vel", (10,)),
-                ("last_actions", (10,)), # till here: 3+3+3+3+10+10+10 = 41
+                ("dof_pos", (12,)),
+                ("dof_vel", (12,)),
+                ("last_actions", (12,)), # till here: 3+3+3+3+12+12+12 = 48
                 ("height_measurements", (1, 21, 11)),
             ])
 
@@ -225,30 +208,30 @@ class G1DistillCfgPPO( G1FieldCfgPPO ):
     class runner( G1FieldCfgPPO.runner ):
         policy_class_name = "EncoderStateAcRecurrent"
         algorithm_class_name = "EstimatorTPPO"
-        experiment_name = "distill_H1"
+        experiment_name = "distill_G1"
         num_steps_per_env = 32
 
         if multi_process_:
             pretrain_iterations = -1
             class pretrain_dataset:
-                data_dir = "/home/pc/workspace/H1_parkour/data_tra"
+                data_dir = "/home/shaos/workspace/g1_parkour/data_tra"
                 dataset_loops = -1
                 random_shuffle_traj_order = True
                 keep_latest_n_trajs = 1500
                 starting_frame_range = [0, 50]
 
         resume = True
-        load_run = osp.join(logs_root, "field_H1",
-            "Apr21_18-54-13_v1",
+        load_run = osp.join(logs_root, "field_G1",
+            "May28_21-08-07_V5_No_feet_air_time",
         )
-        ckpt_manipulator = "replace_encoder0" if "field_H1" in load_run else None
+        ckpt_manipulator = "replace_encoder0" if "field_G1" in load_run else None
 
-        run_name = "".join(["H1_",
+        run_name = "".join(["G1_",
             ("{:d}skills".format(len(G1DistillCfg.terrain.BarrierTrack_kwargs["options"]))),
             ("_noResume" if not resume else "_from" + "_".join(load_run.split("/")[-1].split("_")[:2])),
         ])
 
         max_iterations = 600000
-        save_interval = 100
+        save_interval = 500
         log_interval = 1
         

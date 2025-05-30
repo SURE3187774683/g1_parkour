@@ -173,7 +173,7 @@ class G1FieldCfg( G1RoughCfg ):
         is_avoid_obstacles = True
 
     class asset( G1RoughCfg.asset ):
-        terminate_after_contacts_on = ["base"]
+        terminate_after_contacts_on = ["pelvis"]
         # penalize_contacts_on = ["pelvis","knee", "hip","ankle"]
 
     class termination( G1RoughCfg.termination ):
@@ -187,40 +187,39 @@ class G1FieldCfg( G1RoughCfg ):
         timeout_at_finished = False
 
     class rewards( G1RoughCfg.rewards ):
-        collision_tracking_weight = 5  # 碰撞时的基础权重
-        dof_error_names = ["left_hip_yaw_joint","right_hip_yaw_joint"]
-        min_feet_distance = 0.3
+        # collision_tracking_weight = 5  # 碰撞时的基础权重
+        # dof_error_names = ["left_hip_yaw_joint","right_hip_yaw_joint"]
+        # min_feet_distance = 0.3
         class scales:
-            tracking_lin_vel = 1.0
+            tracking_lin_vel = 2.0
             tracking_ang_vel = 0.5
             ang_vel_xy = -0.3
             orientation = -1.0
-            contact = 0.18
 
             dof_acc = -2.5e-7
             dof_vel = -1e-3
-
+            
             action_rate = -0.01
             dof_pos_limits = -5.0
             alive = 0.15
-            hip_pos = -1.0
+            hip_pos = -5.0
+            contact = 0.18
 
-            # added for parlin terrain
-            dof_error_named = -0.05
-            feet_air_time = 10.0
+            # # added for parlin terrain
+            # feet_air_time = 10.0
+            # single_contact = 1
 
-            # added for terrain
-            torques = -1e-7
-            collision = -0.05
-            lazy_stop = -3.
+            # # added for terrain
+            # torques = -1e-7
+            # energy = -2.5e-7
+            # collision = -0.05
+            # # lazy_stop = -3.
             
-            # penetration penalty
-            penetrate_depth = -0.05
+            # # penetration penalty
+            # penetrate_depth = -0.05
             
             # feet_distance = 0.5
             # feet_contact_forces = -3e-4
-            # energy = -2.5e-7
-            # torques = -2e-6
 
     class noise( G1RoughCfg.noise ):
         add_noise = False
@@ -240,7 +239,7 @@ class G1FieldCfgPPO( G1RoughCfgPPO ):
 
         resume = True
         load_run = osp.join(logs_root, "rough_G1",
-            "May24_14-25-22_v1_dof_error_names+hip_roll_dof_error_named-0.1",
+            "May27_22-49-38_V4_lin_vel_z-2.0",
         )
 
         # run_name = "".join(["H1_",

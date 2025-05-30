@@ -625,12 +625,6 @@ class LeggedRobotFieldMixin:
         tilting_mask = robot_stepping_obstacle_id == self.terrain.track_options_id_dict["tilt"]
         return_ = torch.where(tilting_mask, torch.clip(torch.abs(roll), 0, torch.pi/2), -torch.clip(torch.abs(roll), 0, torch.pi/2))
         return return_
-
-    # def _reward_hip_pos(self):
-    #     return torch.sum(torch.square(self.dof_pos[:, self.hip_indices] - self.default_dof_pos[:, self.hip_indices]), dim=1)
-
-    def _reward_hip_pos(self):
-        return torch.sum(torch.square(self.dof_pos[:,[0,1,5,6]]), dim=1)
     
     def _reward_front_hip_pos(self):
         """ Reward the robot to stop moving its front hips """
