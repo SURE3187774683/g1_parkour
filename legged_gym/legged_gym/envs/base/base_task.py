@@ -59,6 +59,8 @@ class BaseTask():
         if self.headless == True and self.cfg.sim.no_camera:
             self.graphics_device_id = -1
 
+        # self.graphics_device_id = 3
+
         self.num_envs = cfg.env.num_envs
         self.num_obs = cfg.env.num_observations
         self.num_privileged_obs = cfg.env.num_privileged_obs

@@ -1,8 +1,12 @@
 """ The script to collect demonstrations for the legged robot """
-import os
-os.environ['MESA_VK_DEVICE_SELECT'] = '10de:2684'
-os.environ["CUDA_VISIBLE_DEVICES"] = '2'
 import isaacgym
+
+# import os
+# import torch
+# os.environ['CUDA_VISIBLE_DEVICES'] = "1"
+# device=torch.device("cuda:{}".format(0))
+
+
 from collections import OrderedDict
 import torch
 from datetime import datetime
@@ -51,6 +55,7 @@ def main(args):
     action_std = config["policy"]["init_noise_std"] if args.action_std is None else args.action_std
 
     # create teacher policy
+    # print("env.device: ", env.device)
     policy = build_actor_critic(
         env,
         config["algorithm"]["teacher_policy_class_name"],

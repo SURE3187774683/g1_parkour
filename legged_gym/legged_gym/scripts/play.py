@@ -159,21 +159,6 @@ def play(args):
     # print("terrain_levels:", env.terrain_levels.float().mean(), env.terrain_levels.float().max(), env.terrain_levels.float().min())
     obs = env.get_observations()
     critic_obs = env.get_privileged_observations()
-    
-    # 初始化webviewer
-    webviewer = WebViewer(host="127.0.0.1", port=5001)  # 使用不同的端口
-    
-    # 直接设置环境相关属性，跳过setup中的相机创建
-    webviewer._gym = env.gym
-    webviewer._sim = env.sim
-    webviewer._envs = env.envs
-    webviewer._env = env
-    
-    # 使用机载相机
-    webviewer._cameras = [env.sensor_handles[0]["forward_camera"]]  # 使用环境中的机载相机handle
-    webviewer._camera_id = 0  # 使用第一个相机（机载相机）
-    webviewer._camera_type = gymapi.IMAGE_COLOR  # 使用彩色图像
-    
     # 完全重写render函数
     def new_render(self, fetch_results=True, step_graphics=True, render_all_camera_sensors=True, wait_for_page_load=True):
         # 等待页面加载
@@ -206,19 +191,58 @@ def play(args):
         
         # 从forward_camera配置中获取相机参数
         sensor_cfg = self._env.cfg.sensor.forward_camera
-        # 获取相机位置参数
-        pos_mean = np.array(sensor_cfg.position["mean"])
-        camera_pos = root_pos + pos_mean
-        
-        # 获取相机旋转参数
-        rot_lower = np.array(sensor_cfg.rotation["lower"])
-        rot_upper = np.array(sensor_cfg.rotation["upper"])
-        camera_rot = (rot_lower + rot_upper) / 2  # 使用上下限的平均值
         
         # 创建相机变换
         camera_transform = gymapi.Transform()
+        
+        # 设置相机位置 - 使用与训练时相同的随机采样方式
+        if isinstance(sensor_cfg.position, dict):
+            # 使用mean和std进行随机采样
+            cam_x = np.random.normal(
+                sensor_cfg.position["mean"][0],
+                sensor_cfg.position["std"][0],
+            )
+            cam_y = np.random.normal(
+                sensor_cfg.position["mean"][1],
+                sensor_cfg.position["std"][1],
+            )
+            cam_z = np.random.normal(
+                sensor_cfg.position["mean"][2],
+                sensor_cfg.position["std"][2],
+            )
+            camera_pos = root_pos + np.array([cam_x, cam_y, cam_z])
+        else:
+            camera_pos = root_pos + np.array(sensor_cfg.position)
+        
         camera_transform.p = gymapi.Vec3(*camera_pos)
-        camera_transform.r = gymapi.Quat.from_euler_zyx(*camera_rot)
+        
+        # 设置相机旋转 - 使用与训练时相同的随机采样方式
+        if isinstance(sensor_cfg.rotation, dict):
+            # 使用lower和upper进行随机采样
+            print("相机旋转参数:")
+            print(f"roll - lower: {sensor_cfg.rotation['lower'][0]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][0]):.1f}°), upper: {sensor_cfg.rotation['upper'][0]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][0]):.1f}°)")
+            print(f"pitch - lower: {sensor_cfg.rotation['lower'][1]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][1]):.1f}°), upper: {sensor_cfg.rotation['upper'][1]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][1]):.1f}°)")
+            print(f"yaw - lower: {sensor_cfg.rotation['lower'][2]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][2]):.1f}°), upper: {sensor_cfg.rotation['upper'][2]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][2]):.1f}°)")
+            
+            cam_roll = np.random.uniform(0, 1) * (
+                sensor_cfg.rotation["upper"][0] - sensor_cfg.rotation["lower"][0]
+            ) + sensor_cfg.rotation["lower"][0]
+            cam_pitch = np.random.uniform(0, 1) * (
+                sensor_cfg.rotation["upper"][1] - sensor_cfg.rotation["lower"][1]
+            ) + sensor_cfg.rotation["lower"][1]
+            cam_yaw = np.random.uniform(0, 1) * (
+                sensor_cfg.rotation["upper"][2] - sensor_cfg.rotation["lower"][2]
+            ) + sensor_cfg.rotation["lower"][2]
+            
+            print(f"最终相机旋转角度:")
+            print(f"roll: {cam_roll:.3f}rad ({np.degrees(cam_roll):.1f}°)")
+            print(f"pitch: {cam_pitch:.3f}rad ({np.degrees(cam_pitch):.1f}°)")
+            print(f"yaw: {cam_yaw:.3f}rad ({np.degrees(cam_yaw):.1f}°)")
+            print("------------------------")
+            
+            camera_transform.r = gymapi.Quat.from_euler_zyx(cam_yaw, cam_pitch, cam_roll)
+        else:
+            camera_transform.r = gymapi.Quat.from_euler_zyx(*sensor_cfg.rotation)
         
         # 设置相机变换
         self._gym.set_camera_transform(
@@ -253,7 +277,140 @@ def play(args):
             self._event_stream_depth.set()
         self._notified = True
     
-    webviewer.render = new_render.__get__(webviewer)
+    if ENABLE_ONBOARD_CAMERA:
+        # 初始化webviewer
+        webviewer = WebViewer(host="127.0.0.1", port=5001)  # 使用不同的端口
+        
+        # 直接设置环境相关属性，跳过setup中的相机创建
+        webviewer._gym = env.gym
+        webviewer._sim = env.sim
+        webviewer._envs = env.envs
+        webviewer._env = env
+        
+        # 使用机载相机
+        webviewer._cameras = [env.sensor_handles[0]["forward_camera"]]  # 使用环境中的机载相机handle
+        webviewer._camera_id = 0  # 使用第一个相机（机载相机）
+        webviewer._camera_type = gymapi.IMAGE_COLOR  # 使用彩色图像
+        
+        # 完全重写render函数
+        def new_render(self, fetch_results=True, step_graphics=True, render_all_camera_sensors=True, wait_for_page_load=True):
+            # 等待页面加载
+            if self._wait_for_page:
+                if wait_for_page_load:
+                    if not self._event_load.is_set():
+                        print("Waiting for web page to begin loading...")
+                    self._event_load.wait()
+                    self._event_load.clear()
+                self._wait_for_page = False
+
+            # 暂停流
+            if self._pause_stream:
+                return
+
+            if self._notified:
+                return
+
+            # isaac gym API
+            if fetch_results:
+                self._gym.fetch_results(self._sim, True)
+            if step_graphics:
+                self._gym.step_graphics(self._sim)
+            if render_all_camera_sensors:
+                self._gym.render_all_camera_sensors(self._sim)
+
+            # 获取机器人当前位置和旋转
+            root_pos = self._env.root_states[self._camera_id, :3].cpu().numpy()
+            root_rot = self._env.root_states[self._camera_id, 3:7].cpu().numpy()
+            
+            # 从forward_camera配置中获取相机参数
+            sensor_cfg = self._env.cfg.sensor.forward_camera
+            
+            # 创建相机变换
+            camera_transform = gymapi.Transform()
+            
+            # 设置相机位置 - 使用与训练时相同的随机采样方式
+            if isinstance(sensor_cfg.position, dict):
+                # 使用mean和std进行随机采样
+                cam_x = np.random.normal(
+                    sensor_cfg.position["mean"][0],
+                    sensor_cfg.position["std"][0],
+                )
+                cam_y = np.random.normal(
+                    sensor_cfg.position["mean"][1],
+                    sensor_cfg.position["std"][1],
+                )
+                cam_z = np.random.normal(
+                    sensor_cfg.position["mean"][2],
+                    sensor_cfg.position["std"][2],
+                )
+                camera_pos = root_pos + np.array([cam_x, cam_y, cam_z])
+            else:
+                camera_pos = root_pos + np.array(sensor_cfg.position)
+            
+            camera_transform.p = gymapi.Vec3(*camera_pos)
+            
+            # 设置相机旋转 - 使用与训练时相同的随机采样方式
+            if isinstance(sensor_cfg.rotation, dict):
+                # 使用lower和upper进行随机采样
+                print("相机旋转参数:")
+                print(f"roll - lower: {sensor_cfg.rotation['lower'][0]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][0]):.1f}°), upper: {sensor_cfg.rotation['upper'][0]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][0]):.1f}°)")
+                print(f"pitch - lower: {sensor_cfg.rotation['lower'][1]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][1]):.1f}°), upper: {sensor_cfg.rotation['upper'][1]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][1]):.1f}°)")
+                print(f"yaw - lower: {sensor_cfg.rotation['lower'][2]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][2]):.1f}°), upper: {sensor_cfg.rotation['upper'][2]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][2]):.1f}°)")
+                
+                cam_roll = np.random.uniform(0, 1) * (
+                    sensor_cfg.rotation["upper"][0] - sensor_cfg.rotation["lower"][0]
+                ) + sensor_cfg.rotation["lower"][0]
+                cam_pitch = np.random.uniform(0, 1) * (
+                    sensor_cfg.rotation["upper"][1] - sensor_cfg.rotation["lower"][1]
+                ) + sensor_cfg.rotation["lower"][1]
+                cam_yaw = np.random.uniform(0, 1) * (
+                    sensor_cfg.rotation["upper"][2] - sensor_cfg.rotation["lower"][2]
+                ) + sensor_cfg.rotation["lower"][2]
+                
+                print(f"最终相机旋转角度:")
+                print(f"roll: {cam_roll:.3f}rad ({np.degrees(cam_roll):.1f}°)")
+                print(f"pitch: {cam_pitch:.3f}rad ({np.degrees(cam_pitch):.1f}°)")
+                print(f"yaw: {cam_yaw:.3f}rad ({np.degrees(cam_yaw):.1f}°)")
+                print("------------------------")
+                
+                camera_transform.r = gymapi.Quat.from_euler_zyx(cam_yaw, cam_pitch, cam_roll)
+            else:
+                camera_transform.r = gymapi.Quat.from_euler_zyx(*sensor_cfg.rotation)
+            
+            # 设置相机变换
+            self._gym.set_camera_transform(
+                self._cameras[self._camera_id],
+                self._envs[self._camera_id],
+                camera_transform
+            )
+
+            # 获取图像
+            image = self._gym.get_camera_image(self._sim,
+                                             self._envs[self._camera_id],
+                                             self._cameras[self._camera_id],
+                                             self._camera_type)
+            if self._camera_type == gymapi.IMAGE_COLOR:
+                self._image = image.reshape(image.shape[0], -1, 4)[..., :3]
+            elif self._camera_type == gymapi.IMAGE_DEPTH:
+                self._image = -image.reshape(image.shape[0], -1)
+                minimum = 0 if np.isinf(np.min(self._image)) else np.min(self._image)
+                maximum = 5 if np.isinf(np.max(self._image)) else np.max(self._image)
+                self._image = np.clip(1 - (self._image - minimum) / (maximum - minimum), 0, 1)
+                self._image = np.uint8(255 * self._image)
+            else:
+                raise ValueError("Unsupported camera type")
+
+            if self._env.cfg.viewer.stream_depth:
+                self._image_depth = getattr(self._env, self._depth_image_buffer_name)[self._camera_id, -1].cpu().numpy()
+                self._image_depth = np.uint8(255 * self._image_depth)
+
+            # 通知流线程
+            self._event_stream.set()
+            if self._env.cfg.viewer.stream_depth:
+                self._event_stream_depth.set()
+            self._notified = True
+        
+        webviewer.render = new_render.__get__(webviewer)
     
     # register debugging options to manually trigger disruption
     env.gym.subscribe_viewer_keyboard_event(env.viewer, isaacgym.gymapi.KEY_P, "push_robot")
@@ -300,7 +457,8 @@ def play(args):
         policy = agent_model.act
     ### get obs_slice to read the obs
     # obs_slice = get_obs_slice(env.obs_segments, "engaging_block")
-    env.start_webviewer(port=5000)  
+    if ENABLE_ONBOARD_CAMERA:
+        env.start_webviewer(port=5000)  
     # export policy as a jit module (used to run it from C++)
     if EXPORT_POLICY:
         path = os.path.join(LEGGED_GYM_ROOT_DIR, 'logs', train_cfg.runner.experiment_name, 'exported', 'policies')
@@ -347,9 +505,10 @@ def play(args):
             )
             env.gym.write_viewer_image_to_file(env.viewer, filename)
             img_idx += 1
-            
+
+        if ENABLE_ONBOARD_CAMERA:
         # 渲染相机画面到webviewer，不等待页面加载
-        webviewer.render(wait_for_page_load=False)
+            webviewer.render(wait_for_page_load=False)
         
         if MOVE_CAMERA:
             if CAMERA_FOLLOW:
@@ -611,6 +770,7 @@ if __name__ == '__main__':
     # MOVE_CAMERA = False
     # CAMERA_FOLLOW = False
     RECORD_FRAMES = args.record
+    ENABLE_ONBOARD_CAMERA = True   
     try:
         play(args)
     except KeyboardInterrupt:

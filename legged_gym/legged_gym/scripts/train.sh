@@ -1,5 +1,4 @@
 #! /bin/bash
-
 DEVICE=cuda:5
 
 python /home/shaos/workspace/g1_parkour/legged_gym/legged_gym/scripts/train.py \

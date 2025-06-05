@@ -54,8 +54,11 @@ Thumbs.db
 logs
 runs
 log.file*
+collect.file*
 
 # other
 *.egg-info
 __pycache__
 
+#trajectory files
+traj*

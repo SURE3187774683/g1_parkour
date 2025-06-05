@@ -78,6 +78,7 @@ class LeggedRobot(BaseTask):
         self.init_done = False
         self._parse_cfg(self.cfg)
         super().__init__(self.cfg, sim_params, physics_engine, sim_device, headless)
+        # print("sim_device:", self.sim_device)
 
         self._include_feet_height_rewards = self._check_if_include_feet_height_rewards()
         if not self.headless:

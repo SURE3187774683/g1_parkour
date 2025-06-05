@@ -7,7 +7,7 @@ from datetime import datetime
 from legged_gym.utils.helpers import merge_dict
 from legged_gym.envs.g1.g1_field_config import G1FieldCfg, G1FieldCfgPPO, G1RoughCfgPPO
 
-multi_process_ = False
+multi_process_ = True
 class G1DistillCfg( G1FieldCfg ):
     class env( G1FieldCfg.env ):
         num_envs = 256
@@ -56,12 +56,12 @@ class G1DistillCfg( G1FieldCfg ):
             obs_components = ["forward_depth"]
             resolution = [int(480/4), int(640/4)]
             position = dict(
-                mean= [0.1, 0., 0.462],
+                mean= [0.048, 0., 0.462],
                 std= [0.01, 0.0025, 0.03],
             )
             rotation = dict(
-                lower= [0, 0.37, 0],
-                upper= [0, 0.43, 0],
+                lower= [-0.1, 0.74-0.03, -0.1],
+                upper= [0.1, 0.74+0.03, 0.1],
             )
             resized_resolution = [48, 64]
             output_resolution = [48, 64]
@@ -149,7 +149,7 @@ class G1DistillCfgPPO( G1FieldCfgPPO ):
 
         teacher_policy_class_name = "EncoderStateAcRecurrent"
         teacher_ac_path = osp.join(logs_root, "field_G1",
-            "May28_21-08-07_V5_No_feet_air_time",
+            "Distill_best",
             "model_22000.pt"
         )
 
@@ -222,7 +222,7 @@ class G1DistillCfgPPO( G1FieldCfgPPO ):
 
         resume = True
         load_run = osp.join(logs_root, "field_G1",
-            "May28_21-08-07_V5_No_feet_air_time",
+            "Distill_best",
         )
         ckpt_manipulator = "replace_encoder0" if "field_G1" in load_run else None
 

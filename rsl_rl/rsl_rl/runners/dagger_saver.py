@@ -31,6 +31,7 @@ class DaggerSaver(DemonstrationSaver):
             teacher_act_prob: The same as in TPPO, but the iteration will be get from the model checkpoint
         """
         super().__init__(*args, **kwargs)
+        print("training_policy_logdir: ", training_policy_logdir)
         self.training_policy_logdir = training_policy_logdir
         self.teacher_act_prob = teacher_act_prob
         self.update_times_scale = update_times_scale
@@ -88,7 +89,7 @@ class DaggerSaver(DemonstrationSaver):
             loaded_dict = None
             while loaded_dict is None:
                 try:
-                    loaded_dict = torch.load(osp.join(self.training_policy_logdir, model_f))
+                    loaded_dict = torch.load(osp.join(self.training_policy_logdir, model_f), map_location= "cpu")
                 except RuntimeError:
                     print("Failed to load model state dict file, wait 0.1s")
                     time.sleep(0.1)

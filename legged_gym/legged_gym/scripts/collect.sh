@@ -1,5 +1,8 @@
+# MESA_VK_DEVICE_SELECT = '10de:2684'
+CUDA_VISIBLE_DEVICES=0
+
 python /home/shaos/workspace/g1_parkour/legged_gym/legged_gym/scripts/collect.py \
 --task g1_distill \
 --log \
---load_run /home/shaos/workspace/g1_parkour/legged_gym/logs/distill_G1/May29_15-02-51_G1_9skills_fromMay28_21-08-07 \
+--load_run /home/shaos/workspace/g1_parkour/legged_gym/logs/distill_G1/Jun05_11-54-59_G1_9skills_fromDistill_best \
 --headless \
