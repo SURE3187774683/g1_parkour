@@ -132,6 +132,7 @@ def play(args):
     env_cfg.viewer.draw_height_measurements = False
     env_cfg.viewer.draw_volume_sample_points = False
     env_cfg.viewer.draw_sensors = True
+    env_cfg.viewer.draw_sensor_readings = True
     if hasattr(env_cfg.terrain, "BarrierTrack_kwargs"):
         env_cfg.terrain.BarrierTrack_kwargs["draw_virtual_terrain"] = False
     train_cfg.runner.resume = (args.load_run is not None)
@@ -219,11 +220,6 @@ def play(args):
         # 设置相机旋转 - 使用与训练时相同的随机采样方式
         if isinstance(sensor_cfg.rotation, dict):
             # 使用lower和upper进行随机采样
-            print("相机旋转参数:")
-            print(f"roll - lower: {sensor_cfg.rotation['lower'][0]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][0]):.1f}°), upper: {sensor_cfg.rotation['upper'][0]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][0]):.1f}°)")
-            print(f"pitch - lower: {sensor_cfg.rotation['lower'][1]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][1]):.1f}°), upper: {sensor_cfg.rotation['upper'][1]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][1]):.1f}°)")
-            print(f"yaw - lower: {sensor_cfg.rotation['lower'][2]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][2]):.1f}°), upper: {sensor_cfg.rotation['upper'][2]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][2]):.1f}°)")
-            
             cam_roll = np.random.uniform(0, 1) * (
                 sensor_cfg.rotation["upper"][0] - sensor_cfg.rotation["lower"][0]
             ) + sensor_cfg.rotation["lower"][0]
@@ -234,11 +230,11 @@ def play(args):
                 sensor_cfg.rotation["upper"][2] - sensor_cfg.rotation["lower"][2]
             ) + sensor_cfg.rotation["lower"][2]
             
-            print(f"最终相机旋转角度:")
-            print(f"roll: {cam_roll:.3f}rad ({np.degrees(cam_roll):.1f}°)")
-            print(f"pitch: {cam_pitch:.3f}rad ({np.degrees(cam_pitch):.1f}°)")
-            print(f"yaw: {cam_yaw:.3f}rad ({np.degrees(cam_yaw):.1f}°)")
-            print("------------------------")
+            # print(f"最终相机旋转角度:")
+            # print(f"roll: {cam_roll:.3f}rad ({np.degrees(cam_roll):.1f}°)")
+            # print(f"pitch: {cam_pitch:.3f}rad ({np.degrees(cam_pitch):.1f}°)")
+            # print(f"yaw: {cam_yaw:.3f}rad ({np.degrees(cam_yaw):.1f}°)")
+            # print("------------------------")
             
             camera_transform.r = gymapi.Quat.from_euler_zyx(cam_yaw, cam_pitch, cam_roll)
         else:
@@ -352,10 +348,10 @@ def play(args):
             # 设置相机旋转 - 使用与训练时相同的随机采样方式
             if isinstance(sensor_cfg.rotation, dict):
                 # 使用lower和upper进行随机采样
-                print("相机旋转参数:")
-                print(f"roll - lower: {sensor_cfg.rotation['lower'][0]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][0]):.1f}°), upper: {sensor_cfg.rotation['upper'][0]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][0]):.1f}°)")
-                print(f"pitch - lower: {sensor_cfg.rotation['lower'][1]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][1]):.1f}°), upper: {sensor_cfg.rotation['upper'][1]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][1]):.1f}°)")
-                print(f"yaw - lower: {sensor_cfg.rotation['lower'][2]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][2]):.1f}°), upper: {sensor_cfg.rotation['upper'][2]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][2]):.1f}°)")
+                # print("相机旋转参数:")
+                # print(f"roll - lower: {sensor_cfg.rotation['lower'][0]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][0]):.1f}°), upper: {sensor_cfg.rotation['upper'][0]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][0]):.1f}°)")
+                # print(f"pitch - lower: {sensor_cfg.rotation['lower'][1]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][1]):.1f}°), upper: {sensor_cfg.rotation['upper'][1]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][1]):.1f}°)")
+                # print(f"yaw - lower: {sensor_cfg.rotation['lower'][2]:.3f}rad ({np.degrees(sensor_cfg.rotation['lower'][2]):.1f}°), upper: {sensor_cfg.rotation['upper'][2]:.3f}rad ({np.degrees(sensor_cfg.rotation['upper'][2]):.1f}°)")
                 
                 cam_roll = np.random.uniform(0, 1) * (
                     sensor_cfg.rotation["upper"][0] - sensor_cfg.rotation["lower"][0]
@@ -371,6 +367,10 @@ def play(args):
                 print(f"roll: {cam_roll:.3f}rad ({np.degrees(cam_roll):.1f}°)")
                 print(f"pitch: {cam_pitch:.3f}rad ({np.degrees(cam_pitch):.1f}°)")
                 print(f"yaw: {cam_yaw:.3f}rad ({np.degrees(cam_yaw):.1f}°)")
+                print(f"最终相机位置:")
+                print(f"x: {cam_x:.3f}")
+                print(f"y: {cam_y:.3f}")
+                print(f"z: {cam_z:.3f}")
                 print("------------------------")
                 
                 camera_transform.r = gymapi.Quat.from_euler_zyx(cam_yaw, cam_pitch, cam_roll)
