@@ -1,5 +1,5 @@
 #! /bin/bash
-DEVICE=cuda:1
+DEVICE=cuda:6
 
 python /home/shaos/workspace/g1_parkour/legged_gym/legged_gym/scripts/train.py \
 --task g1_distill \

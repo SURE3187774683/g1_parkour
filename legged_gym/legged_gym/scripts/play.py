@@ -132,7 +132,7 @@ def play(args):
     env_cfg.viewer.draw_height_measurements = False
     env_cfg.viewer.draw_volume_sample_points = False
     env_cfg.viewer.draw_sensors = True
-    env_cfg.viewer.draw_sensor_readings = True
+    # env_cfg.viewer.draw_sensor_readings = True
     if hasattr(env_cfg.terrain, "BarrierTrack_kwargs"):
         env_cfg.terrain.BarrierTrack_kwargs["draw_virtual_terrain"] = False
     train_cfg.runner.resume = (args.load_run is not None)

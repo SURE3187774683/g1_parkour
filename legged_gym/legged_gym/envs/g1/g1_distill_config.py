@@ -7,7 +7,7 @@ from datetime import datetime
 from legged_gym.utils.helpers import merge_dict
 from legged_gym.envs.g1.g1_field_config import G1FieldCfg, G1FieldCfgPPO, G1RoughCfgPPO
 
-multi_process_ = False
+multi_process_ = False   
 class G1DistillCfg( G1FieldCfg ):
     class env( G1FieldCfg.env ):
         num_envs = 256
@@ -54,7 +54,7 @@ class G1DistillCfg( G1FieldCfg ):
     class sensor( G1FieldCfg.sensor ):
         class forward_camera:
             obs_components = ["forward_depth"]
-            resolution = [int(480/2), int(640/2)]
+            resolution = [int(480/4), int(640/4)]
             position = dict(
                 mean= [0.16, 0., 0.462],
                 std= [0., 0., 0.],
